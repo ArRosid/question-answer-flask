@@ -75,6 +75,18 @@ def login():
 
     return render_template("login.html")
 
+
+@app.route("/users")
+def users():
+    user = get_current_user()
+
+    db = dbcon.get_db()
+    users_cur = db.execute("select id, name, expert, admin from users")
+    users_results = users_cur.fetchall()
+
+    return render_template("users.html", user=user, users=users_results)
+
+
 @app.route("/logout")
 def logout():
     session.pop("user", None)
