@@ -1,0 +1,12 @@
+version: '3.7'
+
+services: 
+    web_app:
+        build: ./web_app
+        command: python app.py
+        volumes: 
+            - ./web_app:/usr/src/app
+        ports:
+            - 5000:5001
+        env_file: 
+            - ./.env.dev
