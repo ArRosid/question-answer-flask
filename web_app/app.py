@@ -50,6 +50,7 @@ def register():
                        [username, hashed_password, '0', '0'])
         db.commit()
 
+        session["user"] = username
         return redirect(url_for('index'))
             
     return render_template("register.html")
