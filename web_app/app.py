@@ -86,6 +86,20 @@ def users():
 
     return render_template("users.html", user=user, users=users_results)
 
+@app.route("/promote/<user_id>")
+def promote(user_id):
+    db = dbcon.get_db()
+    user_cur = db.execute("select expert from users where id = ?", [user_id])
+    user_result = user_cur.fetchone()
+
+    if user_result["expert"]: # if user expert, set user to non expert
+        db.execute("update users set expert = 0 where id = ?", [user_id])
+        db.commit()
+    else: # if user is not expert, set user to expert
+        db.execute("update users set expert = 1 where id = ?", [user_id])
+        db.commit()
+
+    return redirect(url_for("users"))
 
 @app.route("/logout")
 def logout():
