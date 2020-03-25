@@ -14,12 +14,25 @@ def close_db(error):
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
 
+def get_current_user():
+    user_result = None
+
+    if 'user' in session:
+        user = session["user"]
+
+        db = dbcon.get_db()
+        user_cur = db.execute("select * from users where name = ?", [user])
+        user_result = user_cur.fetchone()
+
+    return user_result
+
+
 @app.route("/")
 def index():
     user = None
     
     if 'user' in session:
-        user = session["user"]
+        user = get_current_user()
 
     return render_template("home.html", user=user)
 
