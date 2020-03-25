@@ -27,7 +27,7 @@
             <li class="active"><a href="#">Home</a></li>
             {% if not user %}
             <li><a href="{{ url_for('login') }}">Login</a></li>
-            <li><a href="#">Register</a></li>
+            <li><a href="{{ url_for('register') }}">Register</a></li>
             {% endif %}
             {% if user and user["admin"] == 0 and user["expert"] == 0 %}
             <li><a href="#">Ask Question</a></li>
