@@ -76,6 +76,25 @@ def login():
     return render_template("login.html")
 
 
+@app.route("/ask", methods=["GET","POST"])
+def ask():
+    user = get_current_user()
+    db = dbcon.get_db()
+
+    if request.method == "POST":
+        db.execute('''insert into questions (question_text, asked_by_id, expert_id)
+                      values (?,?,?)''',
+                      [request.form["question"], user["id"], request.form["expert"]])
+        db.commit()
+
+        return redirect(url_for("index"))
+
+    expert_cur = db.execute("select id, name from users where expert = 1")
+    expert_result = expert_cur.fetchall()
+
+    return render_template("ask.html", user=user, experts=expert_result)
+
+
 @app.route("/users")
 def users():
     user = get_current_user()
