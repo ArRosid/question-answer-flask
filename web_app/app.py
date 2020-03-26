@@ -110,6 +110,26 @@ def unanswered():
     question_result = question_cur.fetchall()
 
     return render_template("unanswered.html", user=user, questions=question_result)
+
+
+@app.route("/answer/<question_id>", methods=["GET","POST"])
+def answer(question_id):
+    user = get_current_user()
+
+    db = dbcon.get_db()
+
+    if request.method == "POST":
+        db.execute("update questions set answer_text = ? where id=?",
+                    [request.form["answer"], question_id])
+        db.commit()
+        return redirect(url_for("unanswered"))
+
+    question_cur = db.execute("select id, question_text from questions where id=?", [question_id])
+    question = question_cur.fetchone()
+
+    return render_template("answer.html", user=user, question=question)
+
+
 @app.route("/users")
 def users():
     user = get_current_user()
