@@ -99,11 +99,15 @@ def login():
                                [username])
         user = user_cur.fetchone()
 
+        if not user: # if the user is not in database
+            return render_template("login.html", error="Username & Password not match!")
+
         if check_password_hash(user["password"], password):
             session["user"] = user["name"]
             return redirect(url_for("index"))
-        else:
-            return redirect(url_for("login"))
+
+        else: # if the password is wrong
+            return render_template("login.html", error="Username & Password not match!")
 
     return render_template("login.html")
 
