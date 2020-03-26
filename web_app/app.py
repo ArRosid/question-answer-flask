@@ -95,6 +95,21 @@ def ask():
     return render_template("ask.html", user=user, experts=expert_result)
 
 
+@app.route("/unanswered")
+def unanswered():
+    user = get_current_user()
+    db = dbcon.get_db()
+
+    question_cur = db.execute('''select questions.id, questions.question_text, 
+                                    questions.asked_by_id, users.name 
+                                 from questions 
+                                 join users on users.id = questions.asked_by_id
+                                 where answer_text is null and expert_id = ?''',
+                                 [user["id"]])
+
+    question_result = question_cur.fetchall()
+
+    return render_template("unanswered.html", user=user, questions=question_result)
 @app.route("/users")
 def users():
     user = get_current_user()
