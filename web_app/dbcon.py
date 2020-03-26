@@ -10,3 +10,15 @@ def get_db():
     if not hasattr(g, 'sqlite_db'):
         g.sqlite_db = connect_db()
     return g.sqlite_db
+
+def extract_db(db_result):
+    result = []
+
+    if len(db_result) == 0:
+        return result
+        
+    for d in db_result:
+        d = dict(d)
+        result.append(d)
+
+    return result

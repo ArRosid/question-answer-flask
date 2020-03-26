@@ -29,12 +29,20 @@ def get_current_user():
 
 @app.route("/")
 def index():
-    user = None
-    
-    if 'user' in session:
-        user = get_current_user()
+    user = get_current_user()
 
-    return render_template("home.html", user=user)
+    db = dbcon.get_db()
+
+    questions_cur = db.execute(''' select questions.id, questions.question_text, 
+                                        asker.name as asker_name, expert.name as expert_name
+                                   from questions 
+                                   join users as asker on asker.id = questions.asked_by_id
+                                   join users as expert on expert.id = questions.expert_id 
+                                   where answer_text is not null  ''')
+
+    questions_results = dbcon.extract_db(questions_cur.fetchall())    
+
+    return render_template("home.html", user=user, questions=questions_results)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
