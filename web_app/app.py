@@ -26,10 +26,24 @@ def get_current_user():
 
     return user_result
 
+def get_unanswered_question(expert_user_id):
+    db = dbcon.get_db()
+    question_cur = db.execute('''select id from questions 
+                                 where answer_text is null and expert_id=?''',
+                                 [expert_user_id])
+
+    question_result = dbcon.extract_dbs(question_cur.fetchall())
+
+    return len(question_result)
 
 @app.route("/")
 def index():
     user = get_current_user()
+
+    # Get unanswered question count (only for expert)
+    unanswered_q = None
+    if user is not None:
+        unanswered_q = get_unanswered_question(user["id"])
 
     db = dbcon.get_db()
 
@@ -42,7 +56,9 @@ def index():
 
     questions_results = dbcon.extract_dbs(questions_cur.fetchall())    
 
-    return render_template("home.html", user=user, questions=questions_results)
+    return render_template("home.html", user=user, 
+                            questions=questions_results, 
+                            unanswered_q=unanswered_q)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -106,6 +122,8 @@ def ask():
 @app.route("/unanswered")
 def unanswered():
     user = get_current_user()
+    unanswered_q = get_unanswered_question(user["id"])
+
     db = dbcon.get_db()
 
     question_cur = db.execute('''select questions.id, questions.question_text, 
@@ -117,7 +135,9 @@ def unanswered():
 
     question_result = question_cur.fetchall()
 
-    return render_template("unanswered.html", user=user, questions=question_result)
+    return render_template("unanswered.html", user=user, 
+                            questions=question_result,
+                            unanswered_q=unanswered_q)
 
 
 @app.route("/answer/<question_id>", methods=["GET","POST"])
