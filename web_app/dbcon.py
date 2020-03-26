@@ -11,7 +11,7 @@ def get_db():
         g.sqlite_db = connect_db()
     return g.sqlite_db
 
-def extract_db(db_result):
+def extract_dbs(db_result):
     result = []
 
     if len(db_result) == 0:
@@ -22,3 +22,10 @@ def extract_db(db_result):
         result.append(d)
 
     return result
+
+def extract_db(db_result):
+
+    if len(db_result) == 0:
+        return {}
+
+    return dict(db_result)

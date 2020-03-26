@@ -9,7 +9,7 @@
         <div class="col-lg-12">
           <div class="list-group">
             {% for q in questions %}
-            <a href="#" class="list-group-item">
+            <a href=" {{ url_for('question', question_id=q.id) }} " class="list-group-item">
               <h4 class="list-group-item-heading">{{q.question_text}}</h4>
               <p class="list-group-item-text">Asked by: {{q.asker_name}}</p>
               <p class="list-group-item-text">Answered by: {{q.expert_name}}</p>

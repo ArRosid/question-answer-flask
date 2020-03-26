@@ -40,7 +40,7 @@ def index():
                                    join users as expert on expert.id = questions.expert_id 
                                    where answer_text is not null  ''')
 
-    questions_results = dbcon.extract_db(questions_cur.fetchall())    
+    questions_results = dbcon.extract_dbs(questions_cur.fetchall())    
 
     return render_template("home.html", user=user, questions=questions_results)
 
@@ -136,6 +136,22 @@ def answer(question_id):
     question = question_cur.fetchone()
 
     return render_template("answer.html", user=user, question=question)
+
+
+@app.route("/question/<question_id>")
+def question(question_id):
+    user = get_current_user
+    db = dbcon.get_db()
+    question_cur = db.execute('''select questions.question_text, questions.answer_text, 
+                                    asker.name as asker_name, expert.name as expert_name
+                                from questions 
+                                join users as asker on asker.id = questions.asked_by_id
+                                join users as expert on expert.id = questions.expert_id 
+                                where questions.id = ?''', [question_id])
+
+    question_result = dbcon.extract_db(question_cur.fetchone())
+
+    return render_template("question.html", question=question_result)
 
 
 @app.route("/users")
