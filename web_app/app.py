@@ -39,6 +39,7 @@ def get_unanswered_question(expert_user_id):
 @app.route("/")
 def index():
     user = get_current_user()
+    error = request.args.get('error') #get the error message from argument
 
     # Get unanswered question count (only for expert)
     unanswered_q = None
@@ -58,7 +59,8 @@ def index():
 
     return render_template("home.html", user=user, 
                             questions=questions_results, 
-                            unanswered_q=unanswered_q)
+                            unanswered_q=unanswered_q,
+                            error=error)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -109,6 +111,10 @@ def login():
 @app.route("/ask", methods=["GET","POST"])
 def ask():
     user = get_current_user()
+
+    if not user:
+        return redirect(url_for("login"))
+
     db = dbcon.get_db()
 
     if request.method == "POST":
@@ -128,6 +134,13 @@ def ask():
 @app.route("/unanswered")
 def unanswered():
     user = get_current_user()
+    
+    if not user:
+        return redirect(url_for("login"))
+
+    if user["expert"] == 0: #only expert can access this route
+        return redirect(url_for("index", error="You don't permission to access this page!"))
+
     unanswered_q = get_unanswered_question(user["id"])
 
     db = dbcon.get_db()
@@ -150,6 +163,12 @@ def unanswered():
 def answer(question_id):
     user = get_current_user()
 
+    if not user:
+        return redirect(url_for("login"))
+
+    if user["expert"] == 0: # only expert can answer questions
+        return redirect(url_for("index", error="You don't permission to access this page!"))
+
     db = dbcon.get_db()
 
     if request.method == "POST":
@@ -167,6 +186,7 @@ def answer(question_id):
 @app.route("/question/<question_id>")
 def question(question_id):
     user = get_current_user
+    
     db = dbcon.get_db()
     question_cur = db.execute('''select questions.question_text, questions.answer_text, 
                                     asker.name as asker_name, expert.name as expert_name
@@ -184,6 +204,12 @@ def question(question_id):
 def users():
     user = get_current_user()
 
+    if not user: 
+        return redirect(url_for('login'))
+
+    if user["admin"] == 0: #only admin can manage user
+        return redirect(url_for("index", error="You don't permission to access this page!"))
+
     db = dbcon.get_db()
     users_cur = db.execute("select id, name, expert, admin from users")
     users_results = users_cur.fetchall()
@@ -192,6 +218,14 @@ def users():
 
 @app.route("/promote/<user_id>")
 def promote(user_id):
+    user = get_current_user()
+    
+    if not user:
+        return redirect(url_for("login"))
+
+    if user["admin"] == 0: # only admin can promote user
+        return redirect(url_for("index", error="You don't permission to access this page!"))
+
     db = dbcon.get_db()
     user_cur = db.execute("select expert from users where id = ?", [user_id])
     user_result = user_cur.fetchone()
