@@ -47,11 +47,19 @@
     </nav>
 
     <div class="container theme-showcase" role="main">
+      
+      {% if error %}
+      <div class="alert alert-danger alert-dismissible fade in">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        {{ error }}
+      </div>
+      {% endif %}
 
       {% block body %}
       {% endblock %}
 
     </div> <!-- /container -->
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
   </body>
 </html>
