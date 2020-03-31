@@ -23,18 +23,18 @@ def get_current_user():
         user = session["user"]
 
         db = dbcon.get_db()
-        db.execute("select * from users where name = %s" % (user,))
+        db.execute("select * from users where name = %s", (user,))
         user_result = db.fetchone()
 
     return user_result
 
 def get_unanswered_question(expert_user_id):
     db = dbcon.get_db()
-    question_cur = db.execute('''select id from questions 
-                                 where answer_text is null and expert_id=?''',
-                                 [expert_user_id])
+    db.execute('''select id from questions 
+                                 where answer_text is null and expert_id=%s''',
+                                 (expert_user_id,))
 
-    question_result = dbcon.extract_dbs(question_cur.fetchall())
+    question_result = db.fetchall()
 
     return len(question_result)
 
@@ -57,7 +57,7 @@ def index():
                     join users as expert on expert.id = questions.expert_id 
                     where answer_text is not null  ''')
 
-    questions_results = dbcon.extract_dbs(db.fetchall())    
+    questions_results = db.fetchall()
 
     return render_template("home.html", user=user, 
                             questions=questions_results, 
@@ -72,17 +72,16 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
         
-        existing_user_cur = db.execute("select id from users where name=?", [username])
-        existing_user = existing_user_cur.fetchone()
+        db.execute("select id from users where name=%s", (username, ))
+        existing_user = db.fetchone()
 
         if existing_user:
             return render_template("register.html", error="User already exist!")
 
         hashed_password = generate_password_hash(password, method='sha256')
         db.execute(''' insert into users (name, password, expert, admin)
-                       values (?, ?, ?, ?)''',
-                       [username, hashed_password, '0', '0'])
-        db.commit()
+                       values (%s, %s, %s, %s)''',
+                       (username, hashed_password, '0', '0'))
 
         session["user"] = username
         return redirect(url_for('index'))
@@ -97,9 +96,9 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        user_cur = db.execute("select id, name, password from users where name = ? ",
-                               [username])
-        user = user_cur.fetchone()
+        db.execute("select id, name, password from users where name = %s ",
+                               (username,))
+        user = db.fetchone()
 
         if not user: # if the user is not in database
             return render_template("login.html", error="Username & Password not match!")
@@ -125,14 +124,13 @@ def ask():
 
     if request.method == "POST":
         db.execute('''insert into questions (question_text, asked_by_id, expert_id)
-                      values (?,?,?)''',
-                      [request.form["question"], user["id"], request.form["expert"]])
-        db.commit()
+                      values (%s,%s,%s)''',
+                      (request.form["question"], user["id"], request.form["expert"]))
 
         return redirect(url_for("index"))
 
-    expert_cur = db.execute("select id, name from users where expert = 1")
-    expert_result = expert_cur.fetchall()
+    db.execute("select id, name from users where expert = 1")
+    expert_result = db.fetchall()
 
     return render_template("ask.html", user=user, experts=expert_result)
 
@@ -151,14 +149,14 @@ def unanswered():
 
     db = dbcon.get_db()
 
-    question_cur = db.execute('''select questions.id, questions.question_text, 
-                                    questions.asked_by_id, users.name 
-                                 from questions 
-                                 join users on users.id = questions.asked_by_id
-                                 where answer_text is null and expert_id = ?''',
-                                 [user["id"]])
+    db.execute('''select questions.id, questions.question_text, 
+                        questions.asked_by_id, users.name 
+                    from questions 
+                    join users on users.id = questions.asked_by_id
+                    where answer_text is null and expert_id = %s''',
+                    (user["id"],))
 
-    question_result = question_cur.fetchall()
+    question_result = db.fetchall()
 
     return render_template("unanswered.html", user=user, 
                             questions=question_result,
@@ -178,13 +176,13 @@ def answer(question_id):
     db = dbcon.get_db()
 
     if request.method == "POST":
-        db.execute("update questions set answer_text = ? where id=?",
-                    [request.form["answer"], question_id])
-        db.commit()
+        db.execute("update questions set answer_text = %s where id=%s",
+                    (request.form["answer"], question_id,))
+
         return redirect(url_for("unanswered"))
 
-    question_cur = db.execute("select id, question_text from questions where id=?", [question_id])
-    question = question_cur.fetchone()
+    db.execute("select id, question_text from questions where id=%s", (question_id,))
+    question = db.fetchone()
 
     return render_template("answer.html", user=user, question=question)
 
@@ -194,14 +192,14 @@ def question(question_id):
     user = get_current_user
     
     db = dbcon.get_db()
-    question_cur = db.execute('''select questions.question_text, questions.answer_text, 
+    db.execute('''select questions.question_text, questions.answer_text, 
                                     asker.name as asker_name, expert.name as expert_name
                                 from questions 
                                 join users as asker on asker.id = questions.asked_by_id
                                 join users as expert on expert.id = questions.expert_id 
-                                where questions.id = ?''', [question_id])
+                                where questions.id = %s''', (question_id,))
 
-    question_result = dbcon.extract_db(question_cur.fetchone())
+    question_result = db.fetchone()
 
     return render_template("question.html", question=question_result)
 
@@ -217,8 +215,8 @@ def users():
         return redirect(url_for("index", error="You don't permission to access this page!"))
 
     db = dbcon.get_db()
-    users_cur = db.execute("select id, name, expert, admin from users")
-    users_results = users_cur.fetchall()
+    db.execute("select id, name, expert, admin from users")
+    users_results = db.fetchall()
 
     return render_template("users.html", user=user, users=users_results)
 
@@ -233,15 +231,13 @@ def promote(user_id):
         return redirect(url_for("index", error="You don't permission to access this page!"))
 
     db = dbcon.get_db()
-    user_cur = db.execute("select expert from users where id = ?", [user_id])
-    user_result = user_cur.fetchone()
+    db.execute("select expert from users where id = %s", (user_id,))
+    user_result = db.fetchone()
 
     if user_result["expert"]: # if user expert, set user to non expert
-        db.execute("update users set expert = 0 where id = ?", [user_id])
-        db.commit()
+        db.execute("update users set expert = 0 where id = %s", (user_id,))
     else: # if user is not expert, set user to expert
-        db.execute("update users set expert = 1 where id = ?", [user_id])
-        db.commit()
+        db.execute("update users set expert = 1 where id = %s", (user_id,))
 
     return redirect(url_for("users"))
 
