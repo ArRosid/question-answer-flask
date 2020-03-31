@@ -1,4 +1,4 @@
-FROM python:3.8.2-alpine
+FROM python:3.8.1-slim-buster
 
 ENV INSTALL_PATH /usr/src/app/
 WORKDIR $INSTALL_PATH
