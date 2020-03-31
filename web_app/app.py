@@ -23,8 +23,8 @@ def get_current_user():
         user = session["user"]
 
         db = dbcon.get_db()
-        user_cur = db.execute("select * from users where name = ?", [user])
-        user_result = user_cur.fetchone()
+        db.execute("select * from users where name = %s" % (user,))
+        user_result = db.fetchone()
 
     return user_result
 
@@ -50,14 +50,14 @@ def index():
 
     db = dbcon.get_db()
 
-    questions_cur = db.execute(''' select questions.id, questions.question_text, 
-                                        asker.name as asker_name, expert.name as expert_name
-                                   from questions 
-                                   join users as asker on asker.id = questions.asked_by_id
-                                   join users as expert on expert.id = questions.expert_id 
-                                   where answer_text is not null  ''')
+    db.execute(''' select questions.id, questions.question_text, 
+                        asker.name as asker_name, expert.name as expert_name
+                    from questions 
+                    join users as asker on asker.id = questions.asked_by_id
+                    join users as expert on expert.id = questions.expert_id 
+                    where answer_text is not null  ''')
 
-    questions_results = dbcon.extract_dbs(questions_cur.fetchall())    
+    questions_results = dbcon.extract_dbs(db.fetchall())    
 
     return render_template("home.html", user=user, 
                             questions=questions_results, 
