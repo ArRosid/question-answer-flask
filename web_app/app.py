@@ -11,8 +11,10 @@ app.config["SECRET_KEY"] = os.urandom(24)
 
 @app.teardown_appcontext
 def close_db(error):
-    if hasattr(g, 'sqlite_db'):
-        g.sqlite_db.close()
+    if hasattr(g, 'postgres_db_cur'):
+        g.postgres_db_cur.close()
+    if hasattr(g, 'postgres_db_conn'):
+        g.postgres_db_conn.close()
 
 def get_current_user():
     user_result = None
