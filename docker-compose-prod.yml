@@ -12,7 +12,7 @@ services:
         env_file: 
             - ./.env.dev
         environment: 
-            - VIRTUAL_HOST: questions-answers.arrosid.com
+            - VIRTUAL_HOST: "questions-answers.arrosid.com"
         depends_on: 
             - db
     db:
