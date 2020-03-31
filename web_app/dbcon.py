@@ -41,7 +41,7 @@ def connect_db():
     return conn, sql
 
 def get_db():
-    db = connect()
+    db = connect_db()
 
     if not hasattr(g, 'postgres_db_conn'):
         g.postgres_db_conn = connect_db()[0]
