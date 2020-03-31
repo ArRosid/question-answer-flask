@@ -55,3 +55,11 @@ def get_db():
 #     db[1].execute(open('schema.sql', 'r').read())
 #     db[1].close()
 #     db[0].close()
+
+# How to run this function
+# docker-compose exec web_app python -c "import dbcon; dbcon.init_admin()"
+def init_admin():
+    db = connect_db()
+    db[1].execute("update users set admin=True where name=%s", ('admin',))
+    db[1].close()
+    db[0].close()

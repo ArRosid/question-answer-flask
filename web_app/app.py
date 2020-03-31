@@ -129,7 +129,7 @@ def ask():
 
         return redirect(url_for("index"))
 
-    db.execute("select id, name from users where expert = 1")
+    db.execute("select id, name from users where expert = True")
     expert_result = db.fetchall()
 
     return render_template("ask.html", user=user, experts=expert_result)
@@ -142,7 +142,7 @@ def unanswered():
     if not user:
         return redirect(url_for("login"))
 
-    if user["expert"] == 0: #only expert can access this route
+    if not user["expert"]: #only expert can access this route
         return redirect(url_for("index", error="You don't permission to access this page!"))
 
     unanswered_q = get_unanswered_question(user["id"])
@@ -170,7 +170,7 @@ def answer(question_id):
     if not user:
         return redirect(url_for("login"))
 
-    if user["expert"] == 0: # only expert can answer questions
+    if not user["expert"]: # only expert can answer questions
         return redirect(url_for("index", error="You don't permission to access this page!"))
 
     db = dbcon.get_db()
@@ -211,7 +211,7 @@ def users():
     if not user: 
         return redirect(url_for('login'))
 
-    if user["admin"] == 0: #only admin can manage user
+    if not user["admin"]: #only admin can manage user
         return redirect(url_for("index", error="You don't permission to access this page!"))
 
     db = dbcon.get_db()
@@ -227,7 +227,7 @@ def promote(user_id):
     if not user:
         return redirect(url_for("login"))
 
-    if user["admin"] == 0: # only admin can promote user
+    if not user["admin"]: # only admin can promote user
         return redirect(url_for("index", error="You don't permission to access this page!"))
 
     db = dbcon.get_db()
@@ -235,9 +235,9 @@ def promote(user_id):
     user_result = db.fetchone()
 
     if user_result["expert"]: # if user expert, set user to non expert
-        db.execute("update users set expert = 0 where id = %s", (user_id,))
+        db.execute("update users set expert = False where id = %s", (user_id,))
     else: # if user is not expert, set user to expert
-        db.execute("update users set expert = 1 where id = %s", (user_id,))
+        db.execute("update users set expert = True where id = %s", (user_id,))
 
     return redirect(url_for("users"))
 
